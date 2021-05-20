@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io();
+    </script>
+  </head>
+  <body>
+    <input type="text" class="demo1" />
+    <button onclick=" message()">Click</button>
+    <h1 class="demo"></h1>
+    <script>
+      function message() {
+        socket.emit("message", document.querySelector(".demo1").value);
+        //   socket.on("broadcast", (data) => {
+        socket.on("message", (data) => {
+          document.querySelector(".demo").textContent = data.socket;
+        });
+      }
+      socket.on("connect", function () {
+        console.log("Connected to Server");
+      });
+      // make connection with server from user side
+    </script>
+  </body>
+</html>

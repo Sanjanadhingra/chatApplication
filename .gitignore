@@ -1,0 +1,4 @@
+node_modules/
+
+# Remove unnecassry files
+package-lock.json
