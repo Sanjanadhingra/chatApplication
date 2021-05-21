@@ -4,23 +4,23 @@
     <script>
       var socket = io();
     </script>
+    <script>
+      socket.on("connect", function () {
+        console.log("Connected to Server");
+        function message() {
+          socket.emit("login", document.querySelector(".demo1").value);
+          //   socket.on("broadcast", (data) => {
+          socket.on("message", (data) => {
+            document.querySelector(".demo").textContent = data.socket;
+          });
+        }
+      });
+      // make connection with server from user side
+    </script>
   </head>
   <body>
     <input type="text" class="demo1" />
     <button onclick=" message()">Click</button>
     <h1 class="demo"></h1>
-    <script>
-      function message() {
-        socket.emit("message", document.querySelector(".demo1").value);
-        //   socket.on("broadcast", (data) => {
-        socket.on("message", (data) => {
-          document.querySelector(".demo").textContent = data.socket;
-        });
-      }
-      socket.on("connect", function () {
-        console.log("Connected to Server");
-      });
-      // make connection with server from user side
-    </script>
   </body>
 </html>
