@@ -5,8 +5,16 @@ const messageSchema = new Schema({
     type: String,
     required: [true],
   },
+  userName: {
+    type: String,
+    required: [true],
+  },
   userId: {
     type: Schema.Types.ObjectId,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now(),
   },
 });
 
