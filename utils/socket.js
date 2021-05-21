@@ -5,7 +5,7 @@ const Message = require("./../models/messaeModel");
 const onlineUsersId = [];
 
 async function socketConnecton(io) {
-  io.use(await SocketAuthorization);
+  io.use(SocketAuthorization);
 
   io.on("connection", async (socket) => {
     console.log(socket.client.conn.server.clientsCount + " users connected");
