@@ -21,6 +21,7 @@ async function socketConnecton(io) {
         userName: data.userName,
         content: data.content,
         userId: data.id,
+        from: socket.id,
       };
 
       await Message.create(messageAttributes);
