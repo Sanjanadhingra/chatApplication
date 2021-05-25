@@ -14,8 +14,16 @@ async function socketConnecton(io) {
     onlineUsersId.push(socket.id);
     //  await User.findByIdAndUpdate(socket.id, { isOnline: true });
     //const onlineUsers = await User.find({ active: true });
-    const onlineUsers = await User.find({ _id: { $in: onlineUsersId } });
-    io.emit("online-users", { onlineUsers });
+    let userStatus={}
+    let regUsers = await User.find({},{'_id':1}).lean();
+    let onlineUsers = await User.find({ _id: { $in: onlineUsersId } }).lean();
+    let offlineUsers = regUsers.filter((ele)=>{
+      return onlineUsers.indexOf(ele)===-1
+    });
+    // userStatus['regUsers']=regUsers
+    userStatus['onlineUsers']=onlineUsers
+    userStatus['offlineUsers']=offlineUsers
+    io.emit("User-status", userStatus );
 
     /////////////////////on message event
     socket.on("message", async (data) => {
@@ -34,19 +42,31 @@ async function socketConnecton(io) {
     });
 
     socket.on("load-all-messages", async (data) => {
-      const result = await Message.findOne({
+      const result = await Message.find({
         $and: [{ from: socket.id }, { userId: data.id }],
-      });
+      }).lean();
       io.to(data.id.toString()).emit("load-all-messages", { result });
     });
     //////////////disconnection event
     socket.on("disconnect", async () => {
       console.log("User disconnected");
       //await User.findByIdAndUpdate(socket.id, { isOnline: false });
+      let userStatus={};
+      let regUsers= await User.find({},{'_id':1}).lean();
+
       const offlineUser = onlineUsersId.indexOf(socket.id);
       onlineUsersId.splice(offlineUser, 1);
+      let offlineUsers = regUsers.filter((ele)=>{
+        return onlineUsersId.indexOf(ele)===-1
+      });
+      // userStatus['regUsers']=regUsers
+      userStatus['onlineUsers']=onlineUsersId
+      userStatus['offlineUsers']=offlineUsers
+      
       console.log(socket.client.conn.server.clientsCount + " users connected");
-      socket.broadcast.emit("online-users", { onlineUsers });
+      // socket.broadcast.emit("online-users", { onlineUsers });
+      io.emit("User-status", userStatus );
+
     });
   });
 }
