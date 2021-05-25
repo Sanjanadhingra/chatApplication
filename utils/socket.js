@@ -25,9 +25,6 @@ async function socketConnecton(io) {
     userStatus['offlineUsers']=offlineUsers
     io.emit("User-status", userStatus );
 
-    /////////////////////////
-    socket.emit("last-message", () => {});
-
     /////////////////////on message event
     socket.on("message", async (data) => {
       const messageAttributes = {
@@ -47,12 +44,7 @@ async function socketConnecton(io) {
     socket.on("load-all-messages", async (data) => {
       const result = await Message.find({
         $and: [{ from: socket.id }, { userId: data.id }],
-<<<<<<< HEAD
       }).lean();
-=======
-      });
-
->>>>>>> 5ea2273783733735df03990608a639030efaaacd
       io.to(data.id.toString()).emit("load-all-messages", { result });
     });
     //////////////disconnection event
