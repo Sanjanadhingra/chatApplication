@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
   },
   confirmationToken: String,
   isOnline: Boolean,
+  photo: String,
 
   passwordConfirm: {
     type: String,
