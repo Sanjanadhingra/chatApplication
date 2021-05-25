@@ -37,6 +37,7 @@ async function socketConnecton(io) {
       const result = await Message.findOne({
         $and: [{ from: socket.id }, { userId: data.id }],
       });
+
       io.to(data.id.toString()).emit("load-all-messages", { result });
     });
     //////////////disconnection event

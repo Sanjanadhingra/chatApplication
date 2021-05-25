@@ -2,9 +2,33 @@ const User = require("./../models/userModel");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("./../utils/email");
 const bcrypt = require("bcryptjs");
-const socketConnection = require("./../utils/socket");
-const socket = require("../app");
-//const io = getSocket();
+const multer = require("multer");
+
+const multerStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/img/users");
+  },
+  filename: (req, file, cb) => {
+    const ext = file.mimetype.split("/")[1];
+    cb(null, `user-${req.body.email}-${Date.now()}.${ext}`);
+  },
+});
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image")) {
+    cb(null, true);
+  } else {
+    cb("Not an image", false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter,
+});
+
+exports.uploadPhoto = upload.single("photo");
+
 exports.signUp = async (req, res, next) => {
   try {
     const findUser = await User.findOne({ email: req.body.email });
@@ -17,6 +41,7 @@ exports.signUp = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
+      photo: req.file.filename,
     });
     console.log(user);
 
