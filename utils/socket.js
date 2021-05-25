@@ -17,6 +17,9 @@ async function socketConnecton(io) {
     const onlineUsers = await User.find({ _id: { $in: onlineUsersId } });
     io.emit("online-users", { onlineUsers });
 
+    /////////////////////////
+    socket.emit("last-message", () => {});
+
     /////////////////////on message event
     socket.on("message", async (data) => {
       const messageAttributes = {
