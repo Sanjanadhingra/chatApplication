@@ -7,9 +7,7 @@ const http = require("http");
 const app = express();
 const server = http.createServer(app);
 
-// function getSocketIo() {
-//   return io;
-// }
+
 
 app.use(express.json());
 ///we use middleware by app.use
@@ -21,12 +19,7 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, "/public")));
 
 app.use("/api/v1/users", userRouter);
-// app.all("*", (req, res, next) => {
-//   res.status(400).json({
-//     status: "fail",
-//     message: `Can't get ${req.originalUrl} on this server`,
-//   });
-// });
+
 app.all("/*", (request, response, next) => {
   response.header("Access-Control-Allow-Origin", "*");
   response.header(

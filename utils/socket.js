@@ -51,6 +51,7 @@ async function socketConnecton(io) {
     socket.emit("last-message", { lastMessage });
 
     //////////////////////////////////////on message event
+
     socket.on("message", async (data) => {
       const messageAttributes = {
         userName: data.userName,
