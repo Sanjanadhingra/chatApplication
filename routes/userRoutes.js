@@ -4,5 +4,5 @@ const router = express.Router();
 router.post("/signUp", userController.uploadPhoto, userController.signUp);
 router.post("/login", userController.login);
 //router.post("/confrimEmail/:token", userController.confirmEmail);
-// router.post("/activeUser", userController.protect, userController.activeUser);
+router.post("/uploadProfilePic", userController.protect, userController.uploadPhoto);
 module.exports = router;

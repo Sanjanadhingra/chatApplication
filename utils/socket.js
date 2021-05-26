@@ -15,7 +15,7 @@ async function socketConnecton(io) {
     //  await User.findByIdAndUpdate(socket.id, { isOnline: true });
     //const onlineUsers = await User.find({ active: true });
     let userStatus = {};
-    let regUsers = await User.find({}, { _id: 1 }).lean();
+    let regUsers = await User.find({}, { '_id': 1 }).lean();
     let onlineUsers = await User.find({ _id: { $in: onlineUsersId } }).lean();
     let offlineUsers = regUsers.filter((ele) => {
       return onlineUsers.indexOf(ele) === -1;
