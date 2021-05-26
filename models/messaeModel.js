@@ -2,7 +2,7 @@ const mongoose = require("mongoose"),
   { Schema } = require("mongoose");
 const messageSchema = new Schema({
   content: {
-    type: [String],
+    type: String,
     required: [true],
   },
   userName: {
