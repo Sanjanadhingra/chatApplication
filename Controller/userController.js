@@ -41,7 +41,7 @@ exports.signUp = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
-      photo: req.file.filename,
+      //      photo: req.file.filename,
     });
     console.log(user);
 
@@ -60,7 +60,7 @@ exports.signUp = async (req, res, next) => {
 
     res.status(200).json({
       status: "success",
-      data: { user, token },
+      data: user,
     });
   } catch (err) {
     if (err.name == "ValidationError") {

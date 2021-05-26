@@ -25,23 +25,38 @@ async function socketConnecton(io) {
     userStatus["offlineUsers"] = offlineUsers;
     io.emit("User-status", userStatus);
 
-    //////////////////////////////////////////
-
-    // socket.on("last-message", async () => {
-    //   const loggedInUser = await Message.aggregate([
-    //     { $match: { from: socket.id, userId: socket.id } },
-    //     { $sort: { createdAt: -1 } },
-    //     { $group: { _id: "$userId", lastMessage: { $ } } },
-    //   ]);
-    // });
+    //////////////////////////////////////////last message event
+    const lastMessage = await Message.aggregate([
+      {
+        $match: { $or: [{ senderId: socket.id }, { receiverId: socket.id }] },
+      },
+      {
+        $addFields: {
+          conversationWith: {
+            $cond: {
+              if: { $eq: ["$senderId", socket.id] },
+              then: "$receiverId",
+              else: "$senderId",
+            },
+          },
+        },
+      },
+      {
+        sort: { createdAt: -1 },
+      },
+      {
+        $group: { _id: "$conversationWith", message: { $first: "$$ROOT" } },
+      },
+    ]);
+    socket.emit("last-message", { lastMessage });
 
     //////////////////////////////////////on message event
     socket.on("message", async (data) => {
       const messageAttributes = {
         userName: data.userName,
         content: data.content,
-        userId: data.id,
-        from: socket.id,
+        receiverId: data.id,
+        senderId: socket.id,
       };
 
       await Message.create(messageAttributes);
@@ -51,12 +66,25 @@ async function socketConnecton(io) {
       });
     });
 
+    /////////////////////////load All message event
     socket.on("load-all-messages", async (data) => {
-      const result = await Message.find({
-        $and: [{ from: socket.id }, { userId: data.id }],
-      }).lean();
-      io.to(data.id.toString()).emit("load-all-messages", { result });
+      const result = Message.find({
+        $or: [
+          {
+            senderId: socket.id,
+            receiverId: data.id,
+          },
+          {
+            sender: data.id,
+            receiverId: socket.id,
+          },
+        ],
+      });
+
+      const loadAllMessages = await result.sort("-createdAt");
+      io.to(data.id.toString()).emit("load-all-messages", { loadAllMessages });
     });
+
     //////////////disconnection event
     socket.on("disconnect", async () => {
       console.log("User disconnected");

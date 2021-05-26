@@ -9,10 +9,10 @@ const messageSchema = new Schema({
     type: String,
     required: [true],
   },
-  from: {
+  senderId: {
     type: Schema.Types.ObjectId,
   },
-  userId: {
+  receiverId: {
     type: Schema.Types.ObjectId,
   },
   createdAt: {
