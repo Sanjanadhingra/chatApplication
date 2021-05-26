@@ -82,7 +82,7 @@ async function socketConnecton(io) {
       });
 
       const loadAllMessages = await result.sort("-createdAt");
-      io.to(data.id.toString()).emit("load-all-messages", { loadAllMessages });
+      socket.emit("load-all-messages", { loadAllMessages });
     });
 
     //////////////disconnection event
