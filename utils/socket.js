@@ -2,28 +2,17 @@ const User = require("./../models/userModel.js");
 
 const SocketAuthorization = require("./middlewares");
 const Message = require("./../models/messaeModel");
-const onlineUsersId = [];
 
 async function socketConnecton(io) {
+  //////////Socket authorization
   io.use(SocketAuthorization);
 
+  /////////////////Connection event
   io.on("connection", async (socket) => {
     console.log(socket.client.conn.server.clientsCount + " users connected");
-    let count = io.sockets.clients;
-    console.log(count);
-    onlineUsersId.push(socket.id);
-    //  await User.findByIdAndUpdate(socket.id, { isOnline: true });
-    //const onlineUsers = await User.find({ active: true });
-    let userStatus = {};
-    let regUsers = await User.find({}, { '_id': 1 }).lean();
-    let onlineUsers = await User.find({ _id: { $in: onlineUsersId } }).lean();
-    let offlineUsers = regUsers.filter((ele) => {
-      return onlineUsers.indexOf(ele) === -1;
+    await User.findByIdAndUpdate(socket.id, {
+      active: true,
     });
-    // userStatus['regUsers']=regUsers
-    userStatus["onlineUsers"] = onlineUsers;
-    userStatus["offlineUsers"] = offlineUsers;
-    io.emit("User-status", userStatus);
 
     //////////////////////////////////////////last message event
     const lastMessage = await Message.aggregate([
@@ -47,7 +36,22 @@ async function socketConnecton(io) {
       {
         $group: { _id: "$conversationWith", message: { $first: "$$ROOT" } },
       },
+      {
+        $project: {
+          _id: 0,
+          "message._id": 0,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "message.conversationWith",
+          foreignField: "_id",
+          as: "userProfile",
+        },
+      },
     ]);
+
     socket.emit("last-message", { lastMessage });
 
     //////////////////////////////////////on message event
@@ -76,7 +80,7 @@ async function socketConnecton(io) {
             receiverId: data.id,
           },
           {
-            sender: data.id,
+            senderId: data.id,
             receiverId: socket.id,
           },
         ],
@@ -89,22 +93,10 @@ async function socketConnecton(io) {
     //////////////disconnection event
     socket.on("disconnect", async () => {
       console.log("User disconnected");
-      //await User.findByIdAndUpdate(socket.id, { isOnline: false });
-      let userStatus = {};
-      let regUsers = await User.find({}, { _id: 1 }).lean();
-
-      const offlineUser = onlineUsersId.indexOf(socket.id);
-      onlineUsersId.splice(offlineUser, 1);
-      let offlineUsers = regUsers.filter((ele) => {
-        return onlineUsersId.indexOf(ele) === -1;
-      });
-      // userStatus['regUsers']=regUsers
-      userStatus["onlineUsers"] = onlineUsersId;
-      userStatus["offlineUsers"] = offlineUsers;
+      await User.findByIdAndUpdate(socket.id, { active: false });
 
       console.log(socket.client.conn.server.clientsCount + " users connected");
-      // socket.broadcast.emit("online-users", { onlineUsers });
-      io.emit("User-status", userStatus);
+      io.emit("onlineUsers", userStatus);
     });
   });
 }

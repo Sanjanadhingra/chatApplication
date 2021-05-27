@@ -8,14 +8,13 @@ const userSchema = new mongoose.Schema({
 
     required: [true, "Please provide email"],
   },
-  confirmationToken: String,
+
   password: {
     type: String,
     required: [true, "Please provide password"],
     minlength: [10, "password length should be greater than 10"],
   },
-  confirmationToken: String,
-  isOnline: Boolean,
+  active: { type: Boolean, default: false },
   photo: String,
 
   passwordConfirm: {

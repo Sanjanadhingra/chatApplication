@@ -10,7 +10,7 @@ const multerStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = file.mimetype.split("/")[1];
-    cb(null, `user-${req.body.email}-${Date.now()}.${ext}`);
+    cb(null, `user-${req.user._id}-${Date.now()}.${ext}`);
   },
 });
 
@@ -41,7 +41,6 @@ exports.signUp = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
-      //      photo: req.file.filename,
     });
     console.log(user);
 
@@ -154,11 +153,8 @@ exports.login = async (req, res) => {
       throw new Error("Wrong email or password");
     }
 
-    //throw new Error('password or email is not correct');
-
     const token = jwt.sign({ id: user._id }, "THIS-IS-CHAT-APPLICATION-API");
     user.password = undefined;
-    //console.log(io.io);
 
     res.status(201).json({
       data: { token, user },
@@ -172,31 +168,53 @@ exports.login = async (req, res) => {
 };
 
 exports.protect = async (req, res) => {
-  let token;
+  try {
+    let token;
 
-  if (
-    req.headers.authorization ||
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
+    if (
+      req.headers.authorization ||
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+    if (!token) {
+      throw new Error("You are not logged in.Please login to get access");
+    }
+
+    /////verification of token
+    const decoded = await jwt.verify(token, "THIS-IS-CHAT-APPLICATION-API");
+    console.log(decoded);
+
+    const authenticatedUser = await User.findById(decoded.id);
+
+    if (!authenticatedUser) {
+      throw new Error("The User no longer exists");
+    }
+    req.user = authenticatedUser;
+
+    next();
+  } catch (err) {
+    res.status(400).json({
+      status: "fail",
+      message: err.message,
+    });
   }
-  if (!token) {
-    throw new Error("You are not logged in.Please login to get access");
-  }
-
-  /////verification of token
-  const decoded = await jwt.verify(token, "THIS-IS-CHAT-APPLICATION-API");
-
-  const authenticatedUser = await User.findById(decoded.id);
-
-  if (!authenticatedUser) {
-    throw new Error("The User no longer exists");
-  }
-  req.user = authenticatedUser;
-  next();
 };
 
-exports.activeUser = async (req, res) => {
-  const users = await User.find({ active: true });
-  console.log(users);
+exports.updateMe = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.user._id, {
+      photo: req.file.filename,
+    });
+    console.log(user);
+    res.status(200).json({
+      status: "success",
+      user,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: "fail",
+      message: err.message,
+    });
+  }
 };
