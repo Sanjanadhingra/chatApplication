@@ -49,8 +49,14 @@ async function socketConnecton(io) {
       },
     ]);
     socket.emit("last-message", { lastMessage });
+    
+    // On typing event
 
-    //////////////////////////////////////on message event
+    socket.on("typing",async (data)=>{
+      io.to(data.id.toString()).emit("display",socket.id);
+    });
+
+    //on message event
 
     socket.on("message", async (data) => {
       const messageAttributes = {

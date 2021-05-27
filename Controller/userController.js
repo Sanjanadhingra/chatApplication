@@ -1,8 +1,10 @@
 const User = require("./../models/userModel");
+const Token = require('./../models/tokenModel');
 const jwt = require("jsonwebtoken");
 const sendEmail = require("./../utils/email");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
+const crypto = require('crypto');
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -78,71 +80,6 @@ exports.signUp = async (req, res, next) => {
   }
 };
 
-// exports.signUp = async (req, res) => {
-//   try {
-//     const findUser = await User.findOne({ email: req.body.email });
-//     if (findUser) {
-//       throw new Error("This email already registered");
-//     }
-//     const user = await User.create({
-//       name: req.body.name,
-//       email: req.body.email,
-//       password: req.body.password,
-//       passwordConfirm: req.body.passwordConfirm,
-//     });
-//     console.log(user);
-
-//     const token = await jwt.sign(
-//       { id: user._id },
-//       "THIS-IS-CHAT-APPLICATION-API"
-//     );
-//     console.log(token);
-//     const updatedUser = await User.findByIdAndUpdate(
-//       user._id,
-//       {
-//         confimationToken: token,
-//       },
-//       {
-//         new: true,
-//         runValidators: true,
-//       }
-//     );
-//     console.log(updatedUser);
-
-//     const resetUrl = `${req.protocol}://${req.get(
-//       "host"
-//     )}/api/v1/users/confirmEmail/${resetToken}`;
-//     const message = `Forgot your password? Please make a patch request on this ${resetUrl} to update the password. If you didn't reuested for it.Please ignore it.`;
-//     await sendEmail({
-//       email: user.email,
-//       subject: "Please confirm your email",
-//       message,
-//     });
-
-//     res.status(200).json({
-//       Status: "success",
-//       message: "Please verify your email",
-//     });
-//   } catch (err) {
-//     res.status(400).json({
-//       status: "fail",
-//       message: err.message,
-//     });
-//   }
-// };
-
-// exports.confirmEmail = async (req, res, next) => {
-//   //const user = req.params.token;
-//   const user = await User.findOneandUpdate(
-//     { confirmationToken: req.params.token },
-//     { active: true }
-//   );
-
-//   res.status(400).json({
-//     status: "success",
-//     message: "Email verified",
-//   });
-// };
 
 exports.login = async (req, res) => {
   try {
@@ -196,7 +133,71 @@ exports.protect = async (req, res) => {
   next();
 };
 
-exports.activeUser = async (req, res) => {
-  const users = await User.find({ active: true });
-  console.log(users);
+exports.changePasswordRequest = async (req, res) => {
+  
+  let user = await User.findOne({email:req.body.email});
+  if (!user){
+    throw new Error ('User does not exist in database...');
+  }
+  let token = await Token.findOne({userId:user._id});
+  if (token){
+    await token.deleteOne();
+  }
+  let newToken = crypto.randomBytes(32).toString('hex');
+  const hashedToken = await bcrypt.hash(newToken,12);
+
+  await new Token({
+    userId: user._id,
+    token:hashedToken,
+    createdAt:Date.now()
+  }).save();
+
+  const resetLink = `http://localhost:3000/passwordReset?token=${hashedToken}&id=${user._id}`
+
+  
+  await sendEmail({
+    email:user.email,
+    subject:"Password Reset Link",
+    message: `Use the link attached for password reset  ${resetLink} and token is ${hashedToken}`
+  })
+  
+  res.json(resetLink);
 };
+
+
+exports.passwordChange = async (req,res)=>{
+  // console.log(req.body);
+  // res.status(200).send(req.body);
+  isPasswordResetTokenValid = await Token.findOne({userId:req.body.userId});
+
+  if(!isPasswordResetTokenValid){
+    throw new Error ('This token is expired....')
+  }
+
+  console.log(isPasswordResetTokenValid)
+  console.log('dbtoken:',isPasswordResetTokenValid.token)
+  console.log('bodytoken',req.body.token);
+  isValid = req.body.token === isPasswordResetTokenValid.token
+
+  if(!isValid){
+     throw new Error ('Invalid token plss provide geniuine token...');
+  }
+
+  const hashedPassword = await bcrypt.hash(req.body.password,12);
+
+  await User.updateOne(
+    { _id: req.body.userId},
+    {$set : {password:hashedPassword}},
+    {new:true}
+  );
+
+  const user = await User.findOne({_id:req.body.userId});
+  await sendEmail({
+    email:user.email,
+    subject:"Password Reset Sucessfull.",
+    message:`Dear ${user.name} you have successfully change your password.`
+  });
+
+  await isPasswordResetTokenValid.deleteOne();
+  res.status(200).send('Password change successful');
+}
