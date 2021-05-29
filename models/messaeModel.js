@@ -5,10 +5,6 @@ const messageSchema = new Schema({
     type: String,
     required: [true],
   },
-  userName: {
-    type: String,
-    required: [true],
-  },
   senderId: {
     type: Schema.Types.ObjectId,
   },

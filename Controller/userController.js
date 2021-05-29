@@ -29,6 +29,7 @@ const upload = multer({
 
 exports.uploadPhoto = upload.single("photo");
 
+//////////////////registration api
 exports.signUp = async (req, res, next) => {
   try {
     const findUser = await User.findOne({ email: req.body.email });
@@ -50,11 +51,11 @@ exports.signUp = async (req, res, next) => {
     );
     console.log(token);
 
-    await sendEmail({
-      email: user.email,
-      subject: "Welcome to chat application",
-      message: "Thanks for joining us",
-    });
+    // await sendEmail({
+    //   email: user.email,
+    //   subject: "Welcome to chat application",
+    //   message: "Thanks for joining us",
+    // });
     user.password = undefined;
 
     res.status(200).json({
@@ -143,6 +144,8 @@ exports.signUp = async (req, res, next) => {
 //   });
 // };
 
+////////////////////////login api
+
 exports.login = async (req, res) => {
   try {
     if (!req.body.email || !req.body.password) {
@@ -166,6 +169,8 @@ exports.login = async (req, res) => {
     });
   }
 };
+
+///////////////////////////////////authorization middleware
 
 exports.protect = async (req, res) => {
   try {
@@ -201,6 +206,7 @@ exports.protect = async (req, res) => {
   }
 };
 
+//////////////////////////////Users can Update
 exports.updateMe = async (req, res, next) => {
   try {
     const user = await User.findByIdAndUpdate(req.user._id, {
