@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
     minlength: [10, "password length should be greater than 10"],
   },
   active: { type: Boolean, default: false },
+  
   photo: String,
 
   passwordConfirm: {

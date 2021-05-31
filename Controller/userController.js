@@ -104,7 +104,7 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.protect = async (req, res) => {
+exports.protect = async (req, res,next) => {
   try {
     let token;
 
@@ -120,7 +120,7 @@ exports.protect = async (req, res) => {
 
     /////verification of token
     const decoded = await jwt.verify(token, "THIS-IS-CHAT-APPLICATION-API");
-    console.log(decoded);
+    console.log('protect',decoded);
 
     const authenticatedUser = await User.findById(decoded.id);
 
@@ -132,7 +132,7 @@ exports.protect = async (req, res) => {
     next();
   } catch (err) {
     res.status(400).json({
-      status: "fail",
+      status: "protect fail",
       message: err.message,
     });
   }
@@ -168,12 +168,14 @@ exports.changePasswordRequest = async (req, res) => {
   })
   
   res.json(resetLink);
+}
 
-exports.updateMe = async (req, res, next) => {
+exports.updateMe = async (req, res) => {
   try {
+    console.log('update me',req);
     const user = await User.findByIdAndUpdate(req.user._id, {
       photo: req.file.filename,
-    });
+    },{new:true});
     console.log(user);
     res.status(200).json({
       status: "success",
@@ -181,7 +183,7 @@ exports.updateMe = async (req, res, next) => {
     });
   } catch (err) {
     res.status(404).json({
-      status: "fail",
+      status: "update me fail",
       message: err.message,
     });
   }
