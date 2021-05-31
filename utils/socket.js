@@ -17,7 +17,7 @@ socketConnection.connect = (io) => {
       active: true,
     });
 
-    const getAllUsers = await User.find({});
+    const getAllUsers = await User.find({},{password:0});
     console.log(getAllUsers);
     //////////////////////////////////////////last message event
     // const lastMessage = await Message.aggregate([

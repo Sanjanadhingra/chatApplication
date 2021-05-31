@@ -14,11 +14,12 @@ router.use(function (req, res, next) {
 router.post("/signUp", userController.signUp);
 router.post("/login", userController.login);
 //router.post("/confrimEmail/:token", userController.confirmEmail);
-router.patch(
+router.post(
   "/uploadProfilePic",
   userController.protect,
   userController.uploadPhoto,
   userController.updateMe
 );
+//router.get("/getChatHistory", userController.loadAllMessages);
 
 module.exports = router;
