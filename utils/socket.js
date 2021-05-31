@@ -66,35 +66,36 @@ socketConnection.connect = (io) => {
       console.log(data);
       const messageAttributes = {
         content: data.content,
-        receiverId: data.recieverId,
+        recieverId: data.recieverId,
         senderId: socket.id,
       };
 
       await Message.create(messageAttributes);
 
       io.to(data.recieverId.toString()).emit(
-        "receiveMessage",
+        "recieveMessage",
         messageAttributes
       );
     });
 
     /////////////////////////load All message event
     socket.on("getAllMessages", async (data) => {
-      const result = Message.find({
+      console.log(data);
+      const loadAllMessages = await Message.find({
         $or: [
           {
             senderId: socket.id,
-            receiverId: data.id,
+            recieverId: data.id,
           },
           {
             senderId: data.id,
-            receiverId: socket.id,
+            recieverId: socket.id,
           },
         ],
       });
 
-      const loadAllMessages = await result.sort("-createdAt");
-      socket.emit("load-all-messages", loadAllMessages);
+      console.log(loadAllMessages);
+      socket.emit("loadAllMessages", loadAllMessages);
     });
 
     ////////////////disconnection event

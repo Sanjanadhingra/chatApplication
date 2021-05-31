@@ -8,7 +8,7 @@ const messageSchema = new Schema({
   senderId: {
     type: Schema.Types.ObjectId,
   },
-  receiverId: {
+  recieverId: {
     type: Schema.Types.ObjectId,
   },
   createdAt: {
