@@ -17,45 +17,66 @@ socketConnection.connect = (io) => {
       active: true,
     });
 
-    const getAllUsers = await User.find({},{password:0});
-    console.log(getAllUsers);
+    // const getAllUsers = await User.find(
+    //   { _id: { $nin: [socket.id] } },
+    //   { password: 0 }
+    // );
+    // console.log(getAllUsers);
     //////////////////////////////////////////last message event
-    // const lastMessage = await Message.aggregate([
-    //   {
-    //     $match: { $or: [{ senderId: socket.id }, { receiverId: socket.id }] },
-    //   },
-    //   {
-    //     $addFields: {
-    //       conversationWith: {
-    //         $cond: {
-    //           if: { $eq: ["$senderId", socket.id] },
-    //           then: "$receiverId",
-    //           else: "$senderId",
-    //         },
-    //       },
-    //     },
-    //   },
-    //   {
-    //     sort: { createdAt: -1 },
-    //   },
-    //   {
-    //     $group: { _id: "$conversationWith", message: { $first: "$$ROOT" } },
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 0,
-    //       "message._id": 0,
-    //     },
-    //   },
-    //   {
-    //     $lookup: {
-    //       from: "users",
-    //       localField: "message.conversationWith",
-    //       foreignField: "_id",
-    //       as: "userProfile",
-    //     },
-    //   },
-    // ]);
+    const getAllUsers = await User.aggregate([
+      {
+        $match: {
+          _id: {
+            $nin: [socket.id],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "messages",
+          let: {
+            userId: "$_id",
+          },
+          pipeline: [
+            {
+              $addFields: {
+                conversationWith: {
+                  $cond: {
+                    if: {
+                      $eq: ["$senderId", socket.id],
+                    },
+                    then: "$recieverId",
+                    else: "$senderId",
+                  },
+                },
+              },
+            },
+            {
+              $match: {
+                $expr: {
+                  $eq: ["$$userId", "$conversationWith"],
+                },
+              },
+            },
+            {
+              $sort: {
+                createdAt: -1,
+              },
+            },
+            {
+              $limit: 1,
+            },
+          ],
+          as: "lastMessage",
+        },
+      },
+      {
+        $unwind: "$lastMessage",
+      },
+      {
+        $project: { password: 0 },
+      },
+    ]);
 
     socket.emit("getAllUsers", getAllUsers);
 
