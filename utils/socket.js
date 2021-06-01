@@ -14,8 +14,9 @@ async function socketConnecton(io) {
       active: true,
     });
 
+    const lastMssg = userService.lastMessage(socket.id);
     //////////////////////////////////////////last message event
-    const lastMessage = await Message.aggregate([
+    /*const lastMessage = await Message.aggregate([
       {
         $match: { $or: [{ senderId: socket.id }, { receiverId: socket.id }] },
       },
@@ -50,9 +51,9 @@ async function socketConnecton(io) {
           as: "userProfile",
         },
       },
-    ]);
+    ]);*/
 
-    socket.emit("last-message", { lastMessage });
+    socket.emit("last-message", { lastMssg });
     
     // On typing event
 

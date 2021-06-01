@@ -33,7 +33,7 @@ exports.uploadPhoto = upload.single("photo");
 
 exports.signUp = async (req, res, next) => {
   try {
-    const findUser = await User.findOne({ email: req.body.email });
+    const findUser = userService.findAUser({ email: req.body.email });
     if (findUser) {
       throw new Error("This email already registered");
     }
@@ -85,7 +85,7 @@ exports.login = async (req, res) => {
     if (!req.body.email || !req.body.password) {
       throw new Error("Please enter email or password");
     }
-    const user = await User.findOne({ email: req.body.email });
+    const user = userService.findAUser({ email: req.body.email });
     if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
       throw new Error("Wrong email or password");
     }
@@ -122,7 +122,7 @@ exports.protect = async (req, res,next) => {
     const decoded = await jwt.verify(token, "THIS-IS-CHAT-APPLICATION-API");
     console.log('protect',decoded);
 
-    const authenticatedUser = await User.findById(decoded.id);
+    const authenticatedUser = userService.findUserById(decoded.id);
 
     if (!authenticatedUser) {
       throw new Error("The User no longer exists");
@@ -145,7 +145,7 @@ exports.changePasswordRequest = async (req, res) => {
   if (!user){
     throw new Error ('User does not exist in database...');
   }
-  let token = await Token.findOne({userId:user._id});
+  let token = userService.findTokenForUser({userId:user._id});
   if (token){
     await token.deleteOne();
   }
@@ -173,7 +173,7 @@ exports.changePasswordRequest = async (req, res) => {
 exports.updateMe = async (req, res) => {
   try {
     console.log('update me',req);
-    const user = await User.findByIdAndUpdate(req.user._id, {
+    const user = userService.updateUserById(req.user._id, {
       photo: req.file.filename,
     },{new:true});
     console.log(user);
@@ -194,7 +194,7 @@ exports.updateMe = async (req, res) => {
 exports.passwordChange = async (req,res)=>{
   // console.log(req.body);
   // res.status(200).send(req.body);
-  isPasswordResetTokenValid = await Token.findOne({userId:req.body.userId});
+  isPasswordResetTokenValid = userService.findTokenForUser({userId:req.body.userId});
 
   if(!isPasswordResetTokenValid){
     throw new Error ('This token is expired....')
@@ -217,7 +217,7 @@ exports.passwordChange = async (req,res)=>{
     {new:true}
   );
 
-  const user = await User.findOne({_id:req.body.userId});
+  const user = userService.findAUser({_id:req.body.userId});
   await sendEmail({
     email:user.email,
     subject:"Password Reset Sucessfull.",
