@@ -1,7 +1,7 @@
 const User = require("./../models/userModel.js");
-
 const SocketAuthorization = require("./middlewares");
 const Message = require("./../models/messaeModel");
+const userService = require("../services/userService.js");
 
 let socketConnection = {};
 
@@ -13,7 +13,7 @@ socketConnection.connect = (io) => {
   io.on("connection", async (socket) => {
     console.log(socket.client.conn.server.clientsCount + " users connected");
     console.log(socket.id);
-    await User.findByIdAndUpdate(socket.id, {
+    userService.updateUserById(socket.id, {
       active: true,
     });
 
@@ -103,9 +103,9 @@ socketConnection.connect = (io) => {
 
 
     socket.on("sendMessage", async (data) => {
-      const IsUserexists = await User.findById(data.recieverId);
-      console.log(data);
-      const messageAttributes = {
+      // const IsUserexists = userService.findUserById(data.recieverId);
+      // if (IsUserexists){
+        const messageAttributes = {
         content: data.content,
         recieverId: data.recieverId,
         senderId: socket.id,
@@ -122,7 +122,7 @@ socketConnection.connect = (io) => {
     /////////////////////////load All message event
     socket.on("getAllMessages", async (data) => {
       console.log(data);
-      const loadAllMessages = await Message.find({
+      const criteria = {
         $or: [
           {
             senderId: socket.id,
@@ -132,8 +132,8 @@ socketConnection.connect = (io) => {
             senderId: data.id,
             recieverId: socket.id,
           },
-        ],
-      });
+        ]}
+      const loadAllMessages = userService.getAllMessages(criteria)
 
       console.log(loadAllMessages);
       socket.emit("loadAllMessages", loadAllMessages);
@@ -142,8 +142,8 @@ socketConnection.connect = (io) => {
     ////////////////disconnection event
     socket.on("disconnect", async () => {
       console.log("User disconnected");
-      await User.findByIdAndUpdate(socket.id, { active: false });
-      const getAllUsers = await User.find({});
+      userService.updateUserById(socket.id, { active: false });
+      const getAllUsers = userService.getAll({});
       console.log(socket.client.conn.server.clientsCount + " users connected");
       socket.emit("getAllUsers", getAllUsers);
     });

@@ -1,5 +1,6 @@
 const User = require("../models/userModel")
-const Token = require("../models/tokenModel")
+const Token = require("../models/tokenModel");
+const Message = require("../models/messaeModel");
 
 let userService={}
 
@@ -15,7 +16,13 @@ userService.findAUser = async (criteria)=>{
  */
 userService.findUserById = async (id)=>{
     return  await User.findById(id).lean();
+}
 
+/**
+ * query to get all user from database 
+ */
+userService.getAll = async(criteria)=>{
+    return await User.find(criteria).lean()
 }
 
 /**
@@ -28,7 +35,7 @@ userService.findTokenForUser = async (criteria)=>{
 /**
  * query to update user with id.
  */
-userService.updateUserById = async (id,update,options)=>{
+userService.updateUserById = async (id,update,options={})=>{
     return await  User.findByIdAndUpdate(id,update,options)
 }
 
@@ -37,6 +44,12 @@ userService.updateUserById = async (id,update,options)=>{
  */
 userService.updateUser = async (criteria,update,options)=>{
     return await User.updateOne(criteria,update,options)
+}
+/**
+ * query to get all messages.
+ */
+userService.getAllMessages = async (criteria)=>{
+    return await Message.find(criteria).lean();
 }
 
 /**

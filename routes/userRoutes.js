@@ -13,9 +13,7 @@ router.use(function (req, res, next) {
 });
 router.post("/signUp", userController.signUp);
 router.post("/login", userController.login);
-
-
-
+router.post("/chatHistory",userController.getChatHistory);
 router.post('/changePasswordRequest',userController.changePasswordRequest);
 router.post('/changePassword',userController.passwordChange);
 // router.post("/uploadProfilePic", userController.protect, userController.uploadPhoto);

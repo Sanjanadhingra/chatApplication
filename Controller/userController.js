@@ -1,6 +1,7 @@
 const User = require("./../models/userModel");
 const Token = require('./../models/tokenModel');
 const jwt = require("jsonwebtoken");
+const userService = require("./../services/userService");
 const sendEmail = require("./../utils/email");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
@@ -236,4 +237,22 @@ exports.passwordChange = async (req,res)=>{
 
   await isPasswordResetTokenValid.deleteOne();
   res.status(200).send('Password change successful');
+}
+
+//get chat history 
+exports.getChatHistory = async(req,res)=>{
+
+  const criteria = {
+    $or: [
+      {
+        senderId: req.body.sender_id,
+        recieverId: req.body.reciver_id,
+      },
+      {
+        senderId: req.body.reciver_id,
+        recieverId: req.body.sender_id,
+      },
+    ]}
+    const chats = userService.getAllMessages(criteria);
+    res.status(200).send(chats);
 }
