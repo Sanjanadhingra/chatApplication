@@ -119,6 +119,11 @@ socketConnection.connect = (io) => {
       socket.emit("loadAllMessages", loadAllMessages);
     });
 
+    ////////////////////////////////Typing event
+    socket.on("typing", async (data) => {
+      io.to(data.id.toString()).emit("display", socket.id);
+    });
+
     ////////////////disconnection event
     socket.on("disconnect", async () => {
       console.log("User disconnected");

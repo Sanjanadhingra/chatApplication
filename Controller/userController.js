@@ -187,16 +187,17 @@ exports.protect = async (req, res) => {
     }
 
     /////verification of token
-    const decoded = await jwt.verify(token, "THIS-IS-CHAT-APPLICATION-API");
-    console.log(decoded);
+    // 2) Verification token
+    const decoded = jwt.verify(token, "THIS-IS-CHAT-APPLICATION-API");
 
-    const authenticatedUser = await User.findById(decoded.id);
-
-    if (!authenticatedUser) {
-      throw new Error("The User no longer exists");
+    // 3) Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      throw new Error("The user no longer exists");
     }
-    req.user = authenticatedUser;
 
+    // GRANT ACCESS TO PROTECTED ROUTE
+    req.user = currentUser;
     next();
   } catch (err) {
     res.status(400).json({
