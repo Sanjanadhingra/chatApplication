@@ -31,6 +31,7 @@ const upload = multer({
 
 exports.uploadPhoto = upload.single("photo");
 
+//////////////////registration api
 exports.signUp = async (req, res, next) => {
   try {
     const findUser = userService.findAUser({ email: req.body.email });
@@ -52,11 +53,11 @@ exports.signUp = async (req, res, next) => {
     );
     console.log(token);
 
-    await sendEmail({
-      email: user.email,
-      subject: "Welcome to chat application",
-      message: "Thanks for joining us",
-    });
+    // await sendEmail({
+    //   email: user.email,
+    //   subject: "Welcome to chat application",
+    //   message: "Thanks for joining us",
+    // });
     user.password = undefined;
 
     res.status(200).json({
@@ -79,6 +80,8 @@ exports.signUp = async (req, res, next) => {
   }
 };
 
+
+////////////////////////login api
 
 exports.login = async (req, res) => {
   try {
@@ -104,7 +107,9 @@ exports.login = async (req, res) => {
   }
 };
 
+
 exports.protect = async (req, res,next) => {
+
   try {
     let token;
 
@@ -139,6 +144,7 @@ exports.protect = async (req, res,next) => {
 };
 
 
+
 exports.changePasswordRequest = async (req, res) => {
   
   let user = await User.findOne({email:req.body.email});
@@ -170,7 +176,11 @@ exports.changePasswordRequest = async (req, res) => {
   res.json(resetLink);
 }
 
+
+
+//////////////////////////////Users can Update
 exports.updateMe = async (req, res) => {
+
   try {
     console.log('update me',req);
     const user = userService.updateUserById(req.user._id, {

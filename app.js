@@ -10,10 +10,10 @@ const server = http.createServer(app);
 app.use(express.json());
 ///we use middleware by app.use
 app.use(cors());
-app.use((req, res, next) => {
-  console.log("welcome to our own middleware");
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log("welcome to our own middleware");
+//   next();
+// });
 app.use(express.static(path.join(__dirname, "/public")));
 
 app.use("/api/v1/users", userRouter);
